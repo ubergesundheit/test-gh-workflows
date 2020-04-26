@@ -1,0 +1,12 @@
+name: My GitHub workflow
+on:
+  pull_request:
+    types: [edited, opened, reopened, synchronize]
+jobs:
+  name: My job name
+  runs-on: ubuntu-18.04
+  steps: 
+    - name: Read the PR title
+      run: |
+        echo "GITHUB_SHA=${GITHUB_SHA}"
+        echo "GITHUB_REF=${GITHUB_REF}"
