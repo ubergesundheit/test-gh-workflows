@@ -3,18 +3,14 @@ on:
   pull_request:
     types: [edited, opened, reopened, synchronize]
 jobs:
-  print-github-sha-and-github-ref:
-    name: Print GITHUB_SHA and GITHUB_REF
+  Check things:
+    name: Check things
     runs-on: ubuntu-18.04
     steps: 
-      - name: Read the PR title
+      - name: Print GITHUB_SHA and GITHUB_REF
         run: |
           echo "GITHUB_SHA=${GITHUB_SHA}"
           echo "GITHUB_REF=${GITHUB_REF}"
-  print-go-version:
-    name: My job name
-    runs-on: ubuntu-18.04
-    steps: 
-      - name: Read the PR title
+      - name: Print Go version
         run: |
           go version
