@@ -11,6 +11,12 @@ jobs:
         run: |
           echo "GITHUB_SHA=${GITHUB_SHA}"
           echo "GITHUB_REF=${GITHUB_REF}"
+      - name: Print github context 
+        run: |
+          echo "github.ref=${{ github.ref }}"
+          echo "github.base_ref=${{ github.base_ref }}"
+          echo "github.head_ref=${{ github.head_ref }}"
+          echo "toJson(github)=${{ toJson(github) }}"
       - name: Print Go version
         run: |
           go version
