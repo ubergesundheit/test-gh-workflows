@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [edited, opened, reopened, synchronize]
 jobs:
-  Check things:
+  check-things:
     name: Check things
     runs-on: ubuntu-18.04
     steps: 
