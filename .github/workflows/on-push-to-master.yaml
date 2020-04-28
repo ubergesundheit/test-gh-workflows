@@ -24,7 +24,7 @@ jobs:
           git commit --allow-empty -m "touch"
       - name: Push changes
           # Based on https://github.com/ad-m/github-push-action.
-          remote_repo="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
+          remote_repo="https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           git push "${remote_repo}" HEAD:${{ github.ref }}
   create-release:
     name: Create release
@@ -37,7 +37,8 @@ jobs:
           echo "::set-output name=tag::${tag}"
       - name: Create release
         uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: "${{ steps.release-info.outputs.tag }}"
           release_name: "${{ steps.release-info.outputs.tag }}"
-
