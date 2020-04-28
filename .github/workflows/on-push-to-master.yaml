@@ -22,4 +22,3 @@ jobs:
           # Based on https://github.com/ad-m/github-push-action.
           remote_repo="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
           git push "${remote_repo}" HEAD:${{ github.ref }}
-
