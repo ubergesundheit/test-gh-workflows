@@ -24,6 +24,7 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit --allow-empty -m "touch"
       - name: Push changes
+        run: |
           # Based on https://github.com/ad-m/github-push-action.
           remote_repo="https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           git push "${remote_repo}" HEAD:${{ github.ref }}
