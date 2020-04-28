@@ -1,0 +1,20 @@
+name: On push to master
+on:
+  push:
+    branches:
+      - master
+jobs:
+  do-things:
+    name: Do things
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Push empty commit
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit --allow-empty -m "touch"
+          remote_repo="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git push "${remote_repo}" HEAD:master
+
