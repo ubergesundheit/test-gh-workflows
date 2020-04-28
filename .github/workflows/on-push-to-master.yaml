@@ -1,0 +1,25 @@
+name: On push to master
+on:
+  push:
+    branches:
+      - master
+      - test-pr # For testing
+jobs:
+  do-things:
+    name: Do things
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Print github context JSON
+        run: |
+          echo "toJson(github)=${{ toJson(github) }}"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Push empty commit
+        run: |
+          # Based on https://github.com/ad-m/github-push-action.
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit --allow-empty -m "touch"
+          remote_repo="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git push "${remote_repo}" HEAD:${{ github.head_ref }}
+
