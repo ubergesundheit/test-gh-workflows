@@ -12,6 +12,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Push empty commit
         run: |
+          # Based on https://github.com/ad-m/github-push-action.
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git commit --allow-empty -m "touch"
