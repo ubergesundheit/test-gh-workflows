@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - test-pr # For testing
 jobs:
   do-things:
     name: Do things
@@ -17,5 +18,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit --allow-empty -m "touch"
           remote_repo="https://${{ github.actor }}:${{ github.token }}@github.com/${{ github.repository }}.git"
-          git push "${remote_repo}" HEAD:master
+          git push "${remote_repo}" HEAD:${{ github.head_ref }}
 
