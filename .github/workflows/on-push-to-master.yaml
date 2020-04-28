@@ -35,7 +35,7 @@ jobs:
       - id: release-info
         name: Extract release name
         run: |
-          tag="v1.2.3-test
+          tag="v1.2.3-test"
           echo "::set-output name=tag::${tag}"
       - name: Create release
         uses: actions/create-release@v1
