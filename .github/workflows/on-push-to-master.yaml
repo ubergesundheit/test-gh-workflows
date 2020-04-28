@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - test-pr
 jobs:
   debug:
     name: Debug
