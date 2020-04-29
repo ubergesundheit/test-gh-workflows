@@ -24,10 +24,10 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit --allow-empty -m "touch"
       - name: Push changes
+        env:
+          REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
         run: |
-          # Based on https://github.com/ad-m/github-push-action.
-          remote_repo="https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          git push "${remote_repo}" HEAD:${{ github.ref }}
+          git push "${REMOTE_REPO}" HEAD:${{ github.ref }}
   create-release:
     name: Create release
     runs-on: ubuntu-18.04
@@ -35,10 +35,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - id: release-info
-        name: Extract release name
+        name: Extract tag name
         run: |
-          tag="v1.2.3-test-2"
+          tag="v1.2.3-test-3"
           echo "::set-output name=tag::${tag}"
+      - name: Tag the commit
+        run: |
+          git tag "${{ steps.release-info.outputs.tag }}" "${{ github.sha }}"
+      - name: Push tag
+        env:
+          REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+        run: |
+          git push "${REMOTE_REPO}" --tags
       - name: Create release
         uses: actions/create-release@v1
         env:
