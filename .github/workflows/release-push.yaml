@@ -1,7 +1,10 @@
-name: Release pull request
+name: Release push
 on:
-  pull_request:
-    types: [opened]
+  push:
+    branches:
+      - 'legacy'
+      - 'master'
+      - 'release-v*.x.x'
 jobs:
   gather_facts:
     name: Gather facts
@@ -12,7 +15,7 @@ jobs:
       - id: get_version
         name: Get version
         run: |
-          title="${{ github.event.pull_request.title }}"
+          title="$(echo ${{ github.event.head_commit.message }} | head -n 1 -)"
           # Matches strings like:
           #
           #   - "release v1.2.3"
@@ -26,36 +29,31 @@ jobs:
           fi
           echo "version=\"$version\""
           echo "::set-output name=version::${version}"
-  prepare_pr_content:
-    name: Prepare PR content
+  create_release:
+    name: Release
     runs-on: ubuntu-18.04
     needs: gather_facts
     if: ${{ needs.gather_facts.outputs.version }}
-    steps: 
+    steps:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.head_ref }}
-      - name: Fetch base ref
-        run: |
-          git fetch origin "${{ github.base_ref }}"
-      - name: Fail if PR is not empty
-        run: |
-          git diff --exit-code "origin/${{ github.base_ref }}" HEAD
-      - name: Update changelog
-        run: |
-          version="${{ needs.gather_facts.outputs.version }}"
-          # TODO architect changelog create-release -f ./CHANGELOG.md "$version"
-          echo "$version" > ./CHANGELOG.md
-      - name: Commit changes
+          ref: ${{ github.sha }}
+      - name: Create tag
         run: |
           version="${{ needs.gather_facts.outputs.version }}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add ./CHANGELOG.md
-          git commit -m "release $version"
-      - name: Push changes
+          git tag $version ${{ github.sha }}
+      - name: Push tag
         env:
           REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
         run: |
-          git push "${REMOTE_REPO}" HEAD:refs/heads/${{ github.head_ref }}
+          git push "${REMOTE_REPO}" --tags
+     - name: Create release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "${{ needs.gather_facts.outputs.version }}"
+          release_name: "${{ needs.gather_facts.outputs.version }}"
