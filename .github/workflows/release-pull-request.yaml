@@ -1,0 +1,54 @@
+name: Release pull request
+on:
+  pull_request:
+    #types: [opened]
+    types: [edited, opened, reopened, synchronize]
+jobs:
+  gather_facts:
+    name: Gather facts
+    runs-on: ubuntu-18.04
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - id: get_version
+        name: Get version
+        run: |
+          title="${{ github.event.pull_request.title }}"
+          if echo $title | grep -qE '^release v\d+\.\d+\.\d+([.-][^.-].*)?$' ; then
+            version=$(echo $title | cut -d ' ' -f 2)
+          fi
+          echo "version=\"$version\""
+          echo "::set-output name=version::${version}"
+  prepare_pr_content:
+    name: Prepare PR content
+    runs-on: ubuntu-18.04
+    needs: gather_facts
+    if: ${{ needs.gather_facts.outputs.version }}
+    steps: 
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Fetch base ref
+        run: |
+          git fetch origin "${{ github.base_ref }}"
+      - name: Fail if PR is not empty
+        run: |
+          git diff --exit-code "origin/${{ github.base_ref }}" HEAD
+      - name: Update changelog
+        run: |
+          version="${{ needs.gather_facts.outputs.version }}"
+          # TODO architect changelog create-release -f ./CHANGELOG.md "$version"
+          echo "$version" > ./CHANGELOG.md
+      - name: Commit changes
+        run: |
+          version="${{ needs.gather_facts.outputs.version }}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ./CHANGELOG.md
+          git commit -m "release $version"
+      - name: Push changes
+        env:
+          REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+        run: |
+          git push "${REMOTE_REPO}" HEAD:refs/heads/${{ github.head_ref }}
