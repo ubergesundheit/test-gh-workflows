@@ -1,8 +1,7 @@
 name: Release pull request
 on:
   pull_request:
-    #types: [opened]
-    types: [edited, opened, reopened, synchronize]
+    types: [opened]
 jobs:
   gather_facts:
     name: Gather facts
