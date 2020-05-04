@@ -15,7 +15,7 @@ jobs:
       - id: get_version
         name: Get version
         run: |
-          title="$(echo ${{ github.event.head_commit.message }} | head -n 1 -)"
+          title="$(echo "${{ github.event.head_commit.message }}" | head -n 1 -)"
           # Matches strings like:
           #
           #   - "release v1.2.3"
