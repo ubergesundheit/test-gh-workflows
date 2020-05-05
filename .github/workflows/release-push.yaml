@@ -6,6 +6,13 @@ on:
       - 'master'
       - 'release-v*.x.x'
 jobs:
+  debug_info:
+    name: Debug info
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Print github context JSON
+        run: |
+          echo "${{ toJson(github) }}"
   gather_facts:
     name: Gather facts
     runs-on: ubuntu-18.04
@@ -32,8 +39,6 @@ jobs:
           echo "::set-output name=version::${version}"
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.sha }}
       - name: Get project.go path
         id: get_project_go_path
         run: |
@@ -53,7 +58,6 @@ jobs:
     steps:
       - name: Cache semver
         id: cache-semver
-        if: ${{ steps.has_project_go.outputs.path }}
         uses: actions/cache@v1
         with:
           path: $SEMVER_PATH
@@ -66,10 +70,43 @@ jobs:
           curl -fsSLo "$SEMVER_PATH" "$SEMVER_URL"
           chmod +x "$SEMVER_PATH"
           echo "::add-path::$(dirname $SEMVER_PATH)"
+  update_project_go:
+    name: Update project.go
+    runs-on: ubuntu-18.04
+    if: ${{ needs.gather_facts.outputs.version != '' && needs.gather_facts.outputs.project_go_path != ''}}
+    needs:
+      - gather_facts
+      - install_semver
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Update project.go
+        id: update_project_go
+        run: |
+          file="${{ needs.gather_facts.outputs.project_go_path }}"
+          version="${{ needs.gather_facts.outputs.version }}"
+          version="${version#v}" # Strip "v" prefix.
+          new_version="${{ steps.find_new_version.outputs.val }}"
+          echo "::set-output name=new_version::${new_version}"
+          sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" $file
+          git diff $file # For debugging.
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ${{ steps.has_project_go.outputs.path }}
+          git commit -m "pkg/project: update version to ${{ steps.update_project_go.outputs.new_version }}"
+      - name: Push changes
+        env:
+          REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+        run: |
+          git push "${REMOTE_REPO}" HEAD:${{ github.ref }} name: Push changes
   create_release:
     name: Create release
     runs-on: ubuntu-18.04
-    needs: gather_facts
+    needs: 
+      - gather_facts
+      - update_project_go
     if: ${{ needs.gather_facts.outputs.version }}
     steps:
       - name: Checkout code
@@ -94,36 +131,3 @@ jobs:
         with:
           tag_name: "${{ needs.gather_facts.outputs.version }}"
           release_name: "${{ needs.gather_facts.outputs.version }}"
-  update_project_go:
-    name: Update project.go
-    runs-on: ubuntu-18.04
-    if: ${{ needs.gather_facts.outputs.version != '' && needs.gather_facts.outputs.project_go_path != ''}}
-    needs:
-      - gather_facts
-      - install_semver
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.sha }}
-      - name: Update project.go
-        id: update_project_go
-        run: |
-          file="${{ needs.gather_facts.outputs.project_go_path }}"
-          version="${{ needs.gather_facts.outputs.version }}"
-          version="${version#v}" # Strip "v" prefix.
-          new_version="${{ steps.find_new_version.outputs.val }}"
-          echo "::set-output name=new_version::${new_version}"
-          sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" $file
-          git diff $file # For debugging.
-      - name: Commit changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add ${{ steps.has_project_go.outputs.path }}
-          git commit -m "pkg/project: update version to ${{ steps.update_project_go.outputs.new_version }}"
-      - name: Push changes
-        env:
-          REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-        run: |
-          git push "${REMOTE_REPO}" HEAD:${{ github.ref }} name: Push changes
