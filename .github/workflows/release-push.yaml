@@ -55,33 +55,25 @@ jobs:
       SEMVER_HASH: ""
       SEMVER_URL: "https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver"
     steps:
-      - name: Add $GITHUB_WORKSPACE/bin to $PATH
-        run: |
-          echo "::add-path::$GITHUB_WORKSPACE/bin"
       - name: Cache semver
         id: cache-semver
         uses: actions/cache@v1
         with:
-          path: "/opt/semver/bin"
-          key: "opt-semver-bin-v3.0.0"
+          path: "/opt/cache/"
+          key: "opt-semver-v3.0.0"
       - name: Install semver
         if: ${{ steps.cache-semver.outputs.cache-hit != 'true' }}
         run: |
           # TODO check hash
-          mkdir -p /opt/semver/bin
-          curl -fsSLo /opt/semver/bin/semver 'https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver'
-          chmod +x /opt/semver/bin/semver
-      - name: Move to workspace directory
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/bin
-          rsync -a /opt/semver/bin/semver $GITHUB_WORKSPACE/bin/semver
-      - name: Print semver version
-        run: |
-          echo "GITHUB_WORKSPACE=\"$GITHUB_WORKSPACE\""
-          echo "executing \"ls $GITHUB_WORKSPACE/bin\""
-          ls $GITHUB_WORKSPACE/bin
-          echo "executing \"semver --version\""
-          semver --version
+          mkdir /opt/cache
+          curl -fsSLo /opt/cache/semver $SEMVER_URL
+          chmod +x /opt/cache/semver
+          /opt/cache/semver --version
+      - name: Upload semver artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: semver
+          path: /opt/cache/semver
   update_project_go:
     name: Update project.go
     runs-on: ubuntu-18.04
@@ -90,15 +82,13 @@ jobs:
       - gather_facts
       - install_semver
     steps:
-      - name: Add $GITHUB_WORKSPACE/bin to $PATH
+      - name: Download semver artifact
+        uses: actions/download-artifact@v1
+        with:
+          name: semver
+      - name: Move semver to /usr/local/bin
         run: |
-          echo "::add-path::$GITHUB_WORKSPACE/bin"
-      - name: Print semver version
-        run: |
-          echo "GITHUB_WORKSPACE=\"$GITHUB_WORKSPACE\""
-          echo "executing \"ls $GITHUB_WORKSPACE/bin\""
-          ls $GITHUB_WORKSPACE/bin
-          echo "executing \"semver --version\""
+          sudo mv ./semver /usr/local/bin
           semver --version
       - name: Checkout code
         uses: actions/checkout@v2
