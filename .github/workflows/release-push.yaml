@@ -65,8 +65,9 @@ jobs:
         if: ${{ steps.cache-semver.outputs.cache-hit != 'true' }}
         run: |
           # TODO check hash
-          curl -fsSLo "/usr/loca/bin/semver" "$SEMVER_URL"
-          chmod +x /usr/local/bin/semver
+          curl -fsSLo ./semver 'https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver'
+          chmod +x ./semver
+          sudo mv ./semver /usr/local/bin
   update_project_go:
     name: Update project.go
     runs-on: ubuntu-18.04
