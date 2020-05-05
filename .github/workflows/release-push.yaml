@@ -86,7 +86,7 @@ jobs:
           file="${{ needs.gather_facts.outputs.project_go_path }}"
           version="${{ needs.gather_facts.outputs.version }}"
           version="${version#v}" # Strip "v" prefix.
-          new_version="${{ steps.find_new_version.outputs.val }}"
+          new_version="$(semver bump patch $version)"
           echo "::set-output name=new_version::${new_version}"
           sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" $file
           git diff $file # For debugging.
