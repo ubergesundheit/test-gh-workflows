@@ -39,8 +39,6 @@ jobs:
           echo "::set-output name=version::${version}"
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.sha }}
       - name: Get project.go path
         id: get_project_go_path
         run: |
@@ -82,8 +80,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.sha }}
       - name: Update project.go
         id: update_project_go
         run: |
