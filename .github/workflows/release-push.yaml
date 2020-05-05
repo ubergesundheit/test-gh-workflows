@@ -12,6 +12,7 @@ jobs:
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
+    steps:
       - id: get_version
         name: Get version
         run: |
@@ -30,7 +31,7 @@ jobs:
           echo "version=\"$version\""
           echo "::set-output name=version::${version}"
   create_release:
-    name: Release
+    name: Create release
     runs-on: ubuntu-18.04
     needs: gather_facts
     if: ${{ needs.gather_facts.outputs.version }}
@@ -57,3 +58,68 @@ jobs:
         with:
           tag_name: "${{ needs.gather_facts.outputs.version }}"
           release_name: "${{ needs.gather_facts.outputs.version }}"
+  update_project_go:
+    name: Update project.go
+    runs-on: ubuntu-18.04
+    needs: gather_facts
+    if: ${{ needs.gather_facts.outputs.version }}
+    env:
+      SEMVER_PATH: ".github/workflows/bin/semver"
+      SEMVER_HASH: ""
+      SEMVER_URL: "https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
+      - id: has_project_go
+        name: Has project.go
+        run: |
+          path='./pkg/project/project.go'
+          if [[ -f $path ]] ; then
+            echo "::set-output name=path::${path}"
+          else
+            echo "::set-output name=path::"
+          fi
+      - id: cache-semver
+        name: Cache semver
+        if: ${{ steps.has_project_go.outputs.path }}
+        uses: actions/cache@v1
+        with:
+          path: $SEMVER_PATH
+          key: semver
+      - name: Install semver
+        if: ${{ steps.cache-semver.outputs.cache-hit != 'true' }}
+        run: |
+          mkdir -p "$(dirname $SEMVER_PATH)"
+          curl -fsSLo "$SEMVER_PATH" "$SEMVER_URL"
+          chmod +x "$SEMVER_PATH"
+          echo "::add-path::$(dirname $SEMVER_PATH)"
+      - id: find_new_version
+        name: Find new version
+        if: ${{ steps.has_project_go.outputs.path }}
+        run: |
+          version="${{ needs.gather_facts.outputs.version }}"
+          new_version="$(semver bump patch $version)-dev"
+          echo "version=\"$version\" new_version=\"$new_version\""
+          echo "::set-output name=val::${new_version}"
+      - name: Update project.go
+        if: ${{ steps.has_project_go.outputs.path }}
+        run: |
+          path="${{ steps.has_project_go.outputs.path }}"
+          version="${{ needs.gather_facts.outputs.version }}"
+          new_version="${{ steps.find_new_version.outputs.val }}"
+          sed -i "s/version=\"${version}\"/version=\"${new_version}\"" $path
+          git diff # For debugging
+      - name: Commit changes
+        if: ${{ steps.has_project_go.outputs.path }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ${{ steps.has_project_go.outputs.path }}
+          git commit -m "pkg/project: update version to ${{ steps.find_new_version.outputs.val }}"
+      - name: Push changes
+        env:
+          REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+        run: |
+          git push "${REMOTE_REPO}" HEAD:${{ github.ref }} name: Push changes
