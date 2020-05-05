@@ -88,6 +88,7 @@ jobs:
           name: semver
       - name: Move semver to /usr/local/bin
         run: |
+          chmod +x ./semver
           sudo mv ./semver /usr/local/bin
           semver --version
       - name: Checkout code
