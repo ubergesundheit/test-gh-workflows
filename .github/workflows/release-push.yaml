@@ -93,6 +93,13 @@ jobs:
       - name: Add $GITHUB_WORKSPACE/bin to $PATH
         run: |
           echo "::add-path::$GITHUB_WORKSPACE/bin"
+      - name: Print semver version
+        run: |
+          echo "GITHUB_WORKSPACE=\"$GITHUB_WORKSPACE\""
+          echo "executing \"ls $GITHUB_WORKSPACE/bin\""
+          ls $GITHUB_WORKSPACE/bin
+          echo "executing \"semver --version\""
+          semver --version
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Update project.go
