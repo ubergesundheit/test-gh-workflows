@@ -55,6 +55,9 @@ jobs:
       SEMVER_HASH: ""
       SEMVER_URL: "https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver"
     steps:
+      - name: Add $GITHUB_WORKSPACE/bin to $PATH
+        run: |
+          echo "::add-path::$GITHUB_WORKSPACE/bin"
       - name: Cache semver
         id: cache-semver
         uses: actions/cache@v1
@@ -68,9 +71,10 @@ jobs:
           mkdir -p /opt/semver/bin
           curl -fsSLo /opt/semver/bin/semver 'https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver'
           chmod +x /opt/semver/bin/semver
-      - name: Add semver to PATH
+      - name: Move to workspace directory
         run: |
-          echo "::add-path::/opt/semver/bin"
+          mkdir -p $GITHUB_WORKSPACE/bin
+          rsync -a /opt/semver/bin/semver $GITHUB_WORKSPACE/bin/semver
       - name: Print semver version
         run: |
           semver --version
@@ -82,6 +86,9 @@ jobs:
       - gather_facts
       - install_semver
     steps:
+      - name: Add $GITHUB_WORKSPACE/bin to $PATH
+        run: |
+          echo "::add-path::$GITHUB_WORKSPACE/bin"
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Update project.go
