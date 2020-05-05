@@ -102,6 +102,10 @@ jobs:
       - gather_facts
       - install_semver
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.sha }}
       - name: Update project.go
         id: update_project_go
         run: |
