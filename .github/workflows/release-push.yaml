@@ -105,12 +105,13 @@ jobs:
       - name: Update project.go
         id: update_project_go
         run: |
+          file="${{ needs.gather_facts.outputs.project_go_path }}"
           version="${{ needs.gather_facts.outputs.version }}"
           version="${version#v}" # Strip "v" prefix.
           new_version="${{ steps.find_new_version.outputs.val }}"
           echo "::set-output name=new_version::${new_version}"
-          sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" "${{ steps.has_project_go.outputs.path }}"
-          git diff "${{ steps.has_project_go.outputs.path }}" # For debugging.
+          sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" $file
+          git diff $file # For debugging.
       - name: Commit changes
         run: |
           git config --local user.email "action@github.com"
