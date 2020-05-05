@@ -60,7 +60,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: "/usr/local/bin/semver"
-          key: "semver"
+          key: "semver-v3.0.0"
       - name: Install semver
         if: ${{ steps.cache-semver.outputs.cache-hit != 'true' }}
         run: |
