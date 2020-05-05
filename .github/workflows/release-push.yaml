@@ -52,7 +52,6 @@ jobs:
     name: Install semver
     runs-on: ubuntu-18.04
     env:
-      SEMVER_PATH: ".github/workflows/bin/semver"
       SEMVER_HASH: ""
       SEMVER_URL: "https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver"
     steps:
@@ -60,16 +59,14 @@ jobs:
         id: cache-semver
         uses: actions/cache@v1
         with:
-          path: $SEMVER_PATH
-          key: semver
+          path: "/usr/local/bin/semver"
+          key: "semver"
       - name: Install semver
         if: ${{ steps.cache-semver.outputs.cache-hit != 'true' }}
         run: |
           # TODO check hash
-          mkdir -p "$(dirname $SEMVER_PATH)"
-          curl -fsSLo "$SEMVER_PATH" "$SEMVER_URL"
-          chmod +x "$SEMVER_PATH"
-          echo "::add-path::$(dirname $SEMVER_PATH)"
+          curl -fsSLo "/usr/loca/bin/semver" "$SEMVER_URL"
+          chmod +x /usr/local/bin/semver
   update_project_go:
     name: Update project.go
     runs-on: ubuntu-18.04
