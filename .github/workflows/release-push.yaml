@@ -68,6 +68,8 @@ jobs:
           mkdir -p /opt/semver/bin
           curl -fsSLo /opt/semver/bin/semver 'https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver'
           chmod +x /opt/semver/bin/semver
+      - name: Add semver to PATH
+        run: |
           echo "::add-path::/opt/semver/bin"
       - name: Print semver version
         run: |
