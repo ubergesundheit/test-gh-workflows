@@ -59,15 +59,18 @@ jobs:
         id: cache-semver
         uses: actions/cache@v1
         with:
-          path: "/usr/local/bin/semver"
-          key: "semver-v3.0.0"
+          path: "/opt/semver/bin"
+          key: "opt-semver-bin-v3.0.0"
       - name: Install semver
         if: ${{ steps.cache-semver.outputs.cache-hit != 'true' }}
         run: |
           # TODO check hash
-          curl -fsSLo ./semver 'https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver'
-          chmod +x ./semver
-          sudo mv ./semver /usr/local/bin
+          mkdir -p /opt/semver/bin
+          curl -fsSLo /opt/semver/bin/semver 'https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver'
+          chmod +x /opt/semver/bin/semver
+          echo "::add-path::/opt/semver/bin"
+      - name: Print semver version
+        run: |
           semver --version
   update_project_go:
     name: Update project.go
