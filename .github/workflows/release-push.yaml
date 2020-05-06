@@ -108,7 +108,7 @@ jobs:
           echo "version=\"$version\" new_version=\"$new_version\""
           echo "::set-output name=new_version::${new_version}"
           sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" $file
-          if ! git diff --exit-code $file ; then
+          if git diff --exit-code $file ; then
             echo "error: no changes in \"$file\"" >&2
             exit 1
           fi
