@@ -33,12 +33,62 @@ jobs:
           fi
           echo "version=\"$version\""
           echo "::set-output name=version::${version}"
+  install_architect:
+    name: Install architect
+    runs-on: ubuntu-18.04
+    env:
+      BINARY: "architect"
+      MODULE: "github.com/giantswarm/architect"
+      VERSION: "1a330ad33b656bb38ab7ef81782dd3956f5dd508"
+    steps:
+      - name: Key
+        id: key
+        run: |
+          cache_dir="/opt/cache"
+          cache_key="install-${MODULE}@${VERSION}"
+          echo "::set-output name=binary::${BINARY}"
+          echo "::set-output name=cache_dir::${cache_dir}"
+          echo "::set-output name=cache_key::${cache_key}"
+          echo "::set-output name=module::${MODULE}"
+          echo "::set-output name=version::${VERSION}"
+      - name: Cache
+        id: cache
+        uses: actions/cache@v1
+        with:
+          key: "${{ steps.key.outputs.cache_key }}"
+          path: "${{ steps.key.outputs.cache_dir }}"
+      - name: Get module
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        env:
+          GO111MODULE: "on"
+          GOBIN: "${{ steps.key.outputs.cache_dir }}"
+        run: |
+          go get ${{ steps.key.outputs.module }}@${{ steps.key.outputs.version }}
+      - name: Smoke test
+        run: |
+          ${{ steps.key.outputs.cache_dir }}/${{ steps.key.outputs.binary }} version
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: "${{ steps.key.outputs.binary }}"
+          path: "${{ steps.key.outputs.cache_dir }}/${{ steps.key.outputs.binary }}"
   prepare_pr_content:
     name: Prepare PR content
     runs-on: ubuntu-18.04
-    needs: gather_facts
+    needs:
+      - gather_facts
+      - install_architect
     if: ${{ needs.gather_facts.outputs.version }}
     steps: 
+      - name: Download architect artifact to /opt/bin
+        uses: actions/download-artifact@v2
+        with:
+          name: architect
+          path: /opt/bin
+      - name: Prepare /opt/bin
+        run: |
+          chmod +x /opt/bin/*
+          echo "::add-path::/opt/bin"
       - name: Checkout code
         uses: actions/checkout@v2
         with:
@@ -52,7 +102,7 @@ jobs:
       - name: Update changelog
         run: |
           version="${{ needs.gather_facts.outputs.version }}"
-          # TODO architect changelog create-release -f ./CHANGELOG.md "$version"
+          #architect release prepare . "$version"
           echo "$version" > ./CHANGELOG.md
       - name: Commit changes
         run: |
