@@ -91,6 +91,9 @@ jobs:
         with:
           name: semver
           path: /opt/bin
+      - name: Make everything in /opt/bin executable
+        run: |
+          chmod +x /opt/bin/*
       - name: Check semver version
         run: |
           semver --version
