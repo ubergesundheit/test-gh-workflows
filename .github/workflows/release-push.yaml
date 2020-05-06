@@ -31,10 +31,11 @@ jobs:
           #   - "release v1.2.3 (#56)"
           #   - "release v1.2.3-r4 (#56)"
           #
-          # And outputs version part (v1.2.3).
+          # And outputs version part (1.2.3).
           if echo $title | grep -qE '^release v[0-9]+\.[0-9]+\.[0-9]+([.-][^ .-][^ ]*)?( \(#[0-9]+\))?$' ; then
             version=$(echo $title | cut -d ' ' -f 2)
           fi
+          version="${version#v}" # Strip "v" prefix.
           echo "version=\"$version\""
           echo "::set-output name=version::${version}"
       - name: Checkout code
@@ -45,11 +46,11 @@ jobs:
         if: ${{ steps.get_version.outputs.version != '' }}
         run: |
           path='./pkg/project/project.go'
-          if [[ -f $path ]] ; then
-            echo "::set-output name=path::${path}"
-          else
-            echo "::set-output name=path::"
+          if [[ ! -f $path ]] ; then
+            path=''
           fi
+          echo "path=\"$path\""
+          echo "::set-output name=path::${path}"
   install_semver:
     name: Install semver
     runs-on: ubuntu-18.04
@@ -103,8 +104,8 @@ jobs:
         run: |
           file="${{ needs.gather_facts.outputs.project_go_path }}"
           version="${{ needs.gather_facts.outputs.version }}"
-          version="${version#v}" # Strip "v" prefix.
-          new_version="$(semver bump patch $version)"
+          new_version="$(semver bump patch $version)-dev"
+          echo "version=\"$version\" new_version=\"$new_version\""
           echo "::set-output name=new_version::${new_version}"
           sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" $file
           if ! git diff --exit-code $file ; then
@@ -116,7 +117,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add $file
-          git commit -m "pkg/project: update version to ${{ steps.update_project_go.outputs.new_version }}"
+          git commit -m "pkg/project: bump version to ${{ steps.update_project_go.outputs.new_version }}"
       - name: Push changes
         env:
           REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
@@ -138,7 +139,7 @@ jobs:
           version="${{ needs.gather_facts.outputs.version }}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag $version ${{ github.sha }}
+          git tag "v$version" ${{ github.sha }}
       - name: Push tag
         env:
           REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
@@ -149,5 +150,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "${{ needs.gather_facts.outputs.version }}"
-          release_name: "${{ needs.gather_facts.outputs.version }}"
+          tag_name: "v${{ needs.gather_facts.outputs.version }}"
+          release_name: "v${{ needs.gather_facts.outputs.version }}"
