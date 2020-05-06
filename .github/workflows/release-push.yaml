@@ -82,10 +82,6 @@ jobs:
       - gather_facts
       - install_semver
     steps:
-      - name: Create /opt/bin
-        run: |
-          mkdir /opt/bin
-          echo "::add-path::/opt/bin"
       - name: Download semver artifact
         uses: actions/download-artifact@v2
         with:
@@ -94,6 +90,7 @@ jobs:
       - name: Make everything in /opt/bin executable
         run: |
           chmod +x /opt/bin/*
+          echo "::add-path::/opt/bin"
       - name: Check semver version
         run: |
           semver --version
@@ -108,7 +105,7 @@ jobs:
           new_version="$(semver bump patch $version)"
           echo "::set-output name=new_version::${new_version}"
           sed -Ei "s/(version[[:space:]]*=[[:space:]]*)\"${version}\"/\1\"${new_version}\"/" $file
-          if [[ ! git diff --exit-code $file ]] ; then
+          if ! git diff --exit-code $file ; then
             echo "error: no changes in \"$file\"" >&2
           fi
       - name: Commit changes
