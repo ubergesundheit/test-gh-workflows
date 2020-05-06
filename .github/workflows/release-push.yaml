@@ -55,28 +55,42 @@ jobs:
     name: Install semver
     runs-on: ubuntu-18.04
     env:
-      SEMVER_HASH: ""
-      SEMVER_URL: "https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver"
+      BINARY: "semver"
+      URL: "https://raw.githubusercontent.com/fsaintjacques/semver-tool/3.0.0/src/semver"
     steps:
-      - name: Cache semver
-        id: cache-semver
+      - name: Key
+        id: key
+        run: |
+          cache_dir="/opt/cache"
+          cache_key="install-${BINARY}-${URL}"
+          echo "::set-output name=binary::${BINARY}"
+          echo "::set-output name=cache_dir::${cache_dir}"
+          echo "::set-output name=cache_key::${cache_key}"
+          echo "::set-output name=url::${URL}"
+      - name: Cache
+        id: cache
         uses: actions/cache@v1
         with:
-          path: "/opt/cache/"
-          key: "opt-semver-v3.0.0"
-      - name: Install semver
-        if: ${{ steps.cache-semver.outputs.cache-hit != 'true' }}
+          key: "${{ steps.key.outputs.cache_key }}"
+          path: "${{ steps.key.outputs.cache_dir }}"
+      - name: Download
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           # TODO check hash
-          mkdir /opt/cache
-          curl -fsSLo /opt/cache/semver $SEMVER_URL
-          chmod +x /opt/cache/semver
-          /opt/cache/semver --version
-      - name: Upload semver artifact
+          binary="${{ steps.key.outputs.binary }}"
+          cache_dir="${{ steps.key.outputs.cache_dir }}"
+          url="${{ steps.key.outputs.url }}"
+          mkdir $cache_dir
+          curl -fsSLo $cache_dir/$binary $url
+          chmod +x $cache_dir/$binary
+      - name: Smoke test
+        run: |
+          $cache_dir/$binary --version
+      - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
-          name: semver
-          path: /opt/cache/semver
+          name: "${{ steps.key.outputs.binary }}"
+          path: "${{ steps.key.outputs.cache_dir }}/${{ steps.key.outputs.binary }}"
   update_project_go:
     name: Update project.go
     runs-on: ubuntu-18.04
@@ -85,18 +99,15 @@ jobs:
       - gather_facts
       - install_semver
     steps:
-      - name: Download semver artifact
+      - name: Download semver artifact to /opt/bin
         uses: actions/download-artifact@v2
         with:
           name: semver
           path: /opt/bin
-      - name: Make everything in /opt/bin executable
+      - name: Prepare /opt/bin
         run: |
           chmod +x /opt/bin/*
           echo "::add-path::/opt/bin"
-      - name: Check semver version
-        run: |
-          semver --version
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Update project.go
