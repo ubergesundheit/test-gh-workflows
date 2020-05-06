@@ -38,9 +38,11 @@ jobs:
           echo "version=\"$version\""
           echo "::set-output name=version::${version}"
       - name: Checkout code
+        if: ${{ steps.get_version.outputs.version != '' }}
         uses: actions/checkout@v2
       - name: Get project.go path
         id: get_project_go_path
+        if: ${{ steps.get_version.outputs.version != '' }}
         run: |
           path='./pkg/project/project.go'
           if [[ -f $path ]] ; then
@@ -125,7 +127,6 @@ jobs:
     runs-on: ubuntu-18.04
     needs: 
       - gather_facts
-      - update_project_go
     if: ${{ needs.gather_facts.outputs.version }}
     steps:
       - name: Checkout code
