@@ -86,19 +86,20 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: semver
+          path: /usr/local/bin
       - name: Move semver to /usr/local/bin
         run: |
-          echo 'calling "./semver"'
-          ls ./semver
-          echo 'calling "chmod +x ./semver"'
-          chmod +x ./semver
-          echo 'calling "./semver --version\"'
-          ./semver --version
-          echo 'calling "sudo mv ./semver /usr/local/bin"'
-          sudo mv ./semver /usr/local/bin
-          echo 'calling "/usr/local/bin/semver --version"'
-          /usr/local/bin/semver --version
-          echo 'calling "semver --version"'
+          #echo 'calling "./semver"'
+          #ls ./semver
+          #echo 'calling "chmod +x ./semver"'
+          #chmod +x ./semver
+          #echo 'calling "./semver --version\"'
+          #./semver --version
+          #echo 'calling "sudo mv ./semver /usr/local/bin"'
+          #sudo mv ./semver /usr/local/bin
+          #echo 'calling "/usr/local/bin/semver --version"'
+          #/usr/local/bin/semver --version
+          #echo 'calling "semver --version"'
           semver --version
       - name: Checkout code
         uses: actions/checkout@v2
