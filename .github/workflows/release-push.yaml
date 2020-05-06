@@ -110,9 +110,10 @@ jobs:
           fi
       - name: Commit changes
         run: |
+          file="${{ needs.gather_facts.outputs.project_go_path }}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add ${{ steps.has_project_go.outputs.path }}
+          git add $file
           git commit -m "pkg/project: update version to ${{ steps.update_project_go.outputs.new_version }}"
       - name: Push changes
         env:
