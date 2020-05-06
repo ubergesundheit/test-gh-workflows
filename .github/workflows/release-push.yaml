@@ -127,7 +127,6 @@ jobs:
     runs-on: ubuntu-18.04
     needs: 
       - gather_facts
-      - update_project_go
     if: ${{ needs.gather_facts.outputs.version }}
     steps:
       - name: Checkout code
