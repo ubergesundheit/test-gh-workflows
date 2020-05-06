@@ -119,7 +119,7 @@ jobs:
         env:
           REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
         run: |
-          git push "${REMOTE_REPO}" HEAD:${{ github.ref }} name: Push changes
+          git push "${REMOTE_REPO}" HEAD:${{ github.ref }}
   create_release:
     name: Create release
     runs-on: ubuntu-18.04
