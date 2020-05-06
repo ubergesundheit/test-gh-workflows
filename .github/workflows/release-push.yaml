@@ -88,6 +88,8 @@ jobs:
           name: semver
       - name: Move semver to /usr/local/bin
         run: |
+          echo 'calling "./semver"'
+          ls ./semver
           echo 'calling "chmod +x ./semver"'
           chmod +x ./semver
           echo 'calling "./semver --version\"'
