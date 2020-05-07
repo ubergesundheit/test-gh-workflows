@@ -51,8 +51,11 @@ jobs:
       - name: Gather facts
         id: gather_facts
         run: |
-          #echo "::set-output name=binary::${BINARY}"
-          exit 1
+          base="$(echo ${{ github.event.ref }} | cut -d '#' -f 1)"
+          version="$(echo ${{ github.event.ref }} | cut -d '#' -f 3)"
+          version="${version#v}" # Strip "v" prefix.
+          echo "::set-output name=base::${base}"
+          echo "::set-output name=version::${version}"
       - name: Download hub artifact to /opt/bin
         uses: actions/download-artifact@v2
         with:
@@ -65,10 +68,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Create empty commit
+        env:
+          version: "${{ steps.gather_facts.outputs.version }}"
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit --allow-empty -m "release $version"
+          git commit --allow-empty -m "release v${{ env.version }}"
       - name: Push changes
         env:
           remote_repo: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
@@ -76,9 +81,8 @@ jobs:
           git push "${remote_repo}" HEAD:${{ github.ref }}
       - name: Create PR
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          base: ${{ steps.gather_facts.outputs.base }}
-          version: ${{ steps.gather_facts.outputs.version }}
-          head: TODO
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          base: "${{ steps.gather_facts.outputs.base }}"
+          version: "${{ steps.gather_facts.outputs.version }}"
         run: |
-          hub pull-request -a ${{ github.actor }} -b ${{ env.base }} -h ${{ env.head }}
+          hub pull-request -a ${{ github.actor }} -b ${{ env.base }} -h ${{ github.event.ref }}
