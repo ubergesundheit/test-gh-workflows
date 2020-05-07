@@ -107,7 +107,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Prepare release changes
         run: |
-          architect prepare-release "${{ steps.gather_facts.outputs.version }}"
+          architect prepare-release --version "${{ steps.gather_facts.outputs.version }}"
       - name: Create release commit
         env:
           version: "${{ steps.gather_facts.outputs.version }}"
