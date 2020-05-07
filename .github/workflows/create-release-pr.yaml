@@ -5,6 +5,9 @@ on:
       - 'master#release#v*.*.*'
       - 'legacy#release#v*.*.*'
       - 'release-v*.x.x#release#v*.*.*'
+defaults:
+  run:
+    working-directory: "/wd/${{ github.repository_owner }}/${{ github.event.repository.name }}"
 jobs:
   debug_info:
     name: Debug info
@@ -73,7 +76,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Prepare release changes
         run: |
-          architect prepare-release --organisation "${{ github.event.repository.owner }}" --project "${{ github.event.repository.name }}" --version "${{ steps.gather_facts.outputs.version }}"
+          architect prepare-release --version "${{ steps.gather_facts.outputs.version }}"
       - name: Create release commit
         env:
           version: "${{ steps.gather_facts.outputs.version }}"
