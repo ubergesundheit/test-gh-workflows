@@ -80,4 +80,4 @@ jobs:
           version: ${{ steps.gather_facts.outputs.version }}
           head: TODO
         run: |
-          hub pull-request -a ${{ github.actor }} -b ${{ env.base }} -h ${{ head.env }}
+          hub pull-request -a ${{ github.actor }} -b ${{ env.base }} -h ${{ env.head }}
