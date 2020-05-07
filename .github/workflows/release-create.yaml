@@ -31,7 +31,7 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           mkdir ${{ env.DIR }}
-          curl -fsSLo - ${{ env.URL }} | tar xvz --strip-components=1 '*/bin/${{ env.BINARY }}'
+          curl -fsSLo - ${{ env.URL }} | tar xvz --strip-components=1 --wildcards '*/bin/${{ env.BINARY }}'
           mv bin/${{ env.BINARY }} ${{ env.DIR }}
           chmod +x ${{ env.DIR }}/${{ env.BINARY }}
       - name: Smoke test
