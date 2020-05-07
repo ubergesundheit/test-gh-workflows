@@ -105,12 +105,12 @@ jobs:
           #architect release prepare . "$version"
           echo "$version" > ./CHANGELOG.md
       - name: Commit changes
+        env:
+          version: "${{ needs.gather_facts.outputs.version }}"
         run: |
-          version="${{ needs.gather_facts.outputs.version }}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add ./CHANGELOG.md
-          git commit -m "release $version"
+          git commit -m "release ${{ env.version }}" -- ./CHANGELOG.md
       - name: Push changes
         env:
           REMOTE_REPO: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"

@@ -1,0 +1,83 @@
+name: Release create
+on:
+  create:
+    branches:
+      - 'master/release/v*.*.*'
+      - 'legacy/release/v*.*.*'
+      - 'release-v*.x.x/release/v*.*.*'
+jobs:
+  debug_info:
+    name: Debug info
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Print github context JSON
+        run: |
+          echo "${{ toJson(github) }}"
+  install_hub:
+    name: Install hub
+    runs-on: ubuntu-18.04
+    env:
+      BINARY: "hub"
+      DIR: "/opt/cache"
+      URL: "https://github.com/github/hub/releases/download/v2.14.2/hub-linux-amd64-2.14.2.tgz"
+    steps:
+      - name: Cache
+        id: cache
+        uses: actions/cache@v1
+        with:
+          key: "install-${{ env.BINARY }}-${{ env.URL }}"
+          path: "${{ env.DIR }}"
+      - name: Download
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        run: |
+          mkdir ${{ env.DIR }}
+          curl -fsSLo - ${{ env.URL }} | tar xvz --strip-components=1 '*/bin/${{ env.BINARY }}'
+          mv bin/${{ env.BINARY }} ${{ env.DIR }}
+          chmod +x ${{ env.DIR }}/${{ env.BINARY }}
+      - name: Smoke test
+        run: |
+          ${{ env.DIR }}/${{ env.BINARY }} version
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: "${{ env.BINARY }}"
+          path: "${{ env.DIR }}/${{ env.BINARY }}"
+  create_release_pr:
+    name: Create release PR
+    needs:
+      - install_hub
+    steps:
+      - name: Gather facts
+        id: gather_facts
+        run: |
+          #echo "::set-output name=binary::${BINARY}"
+          exit 1
+      - name: Download hub artifact to /opt/bin
+        uses: actions/download-artifact@v2
+        with:
+          name: hub
+          path: /opt/bin
+      - name: Prepare /opt/bin
+        run: |
+          chmod +x /opt/bin/*
+          echo "::add-path::/opt/bin"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Create empty commit
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit --allow-empty -m "release $version"
+      - name: Push changes
+        env:
+          remote_repo: "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+        run: |
+          git push "${remote_repo}" HEAD:${{ github.ref }}
+      - name: Create PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          base: ${{ steps.gather_facts.outputs.base }}
+          version: ${{ steps.gather_facts.outputs.version }}
+          head: TODO
+        run: |
+          hub pull-request -a ${{ github.actor }} -b ${{ env.base }} -h ${{ head.env }}
