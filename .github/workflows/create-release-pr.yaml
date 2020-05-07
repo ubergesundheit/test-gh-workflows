@@ -15,36 +15,7 @@ jobs:
           cat <<EOF
           ${{ toJson(github) }}
           EOF
-  install_architect:
-    name: Install architect
-    runs-on: ubuntu-18.04
-    env:
-      BINARY: "architect"
-      DIR: "/opt/cache"
-      MODULE: "github.com/giantswarm/architect"
-      VERSION: "934a337dd642a6d77536e13f2ad0bd2dfe8868bf"
-    steps:
-      - name: Cache
-        id: cache
-        uses: actions/cache@v1
-        with:
-          key: "install-${{ env.BINARY }}-${{ env.URL }}"
-          path: "${{ env.DIR }}"
-      - name: Get module
-        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        env:
-          GO111MODULE: "on"
-          GOBIN: "${{ env.DIR }}"
-        run: |
-          go get ${{ env.MODULE }}@${{ env.VERSION }}
-      - name: Smoke test
-        run: |
-          ${{ env.DIR }}/${{ env.BINARY }} version
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1
-        with:
-          name: "${{ env.BINARY }}"
-          path: "${{ env.DIR }}/${{ env.BINARY }}"
+  # TODO Install hub in architect image.
   install_hub:
     name: Install hub
     runs-on: ubuntu-18.04
@@ -77,8 +48,8 @@ jobs:
   create_release_pr:
     name: Create release PR
     runs-on: ubuntu-18.04
+    container: quay.io/giantswarm/architect:1.0.0-bb38705c4619a4b0099180c838f57958450649b0
     needs:
-      - install_architect
       - install_hub
     steps:
       - name: Gather facts
@@ -89,11 +60,6 @@ jobs:
           version="${version#v}" # Strip "v" prefix.
           echo "::set-output name=base::${base}"
           echo "::set-output name=version::${version}"
-      - name: Download architect artifact to /opt/bin
-        uses: actions/download-artifact@v2
-        with:
-          name: architect
-          path: /opt/bin
       - name: Download hub artifact to /opt/bin
         uses: actions/download-artifact@v2
         with:
@@ -107,7 +73,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Prepare release changes
         run: |
-          architect prepare-release --version "${{ steps.gather_facts.outputs.version }}"
+          architect prepare-release --organisation "${{ github.event.repository.owner }}" --project "${{ github.event.repository.name }}" --version "${{ steps.gather_facts.outputs.version }}"
       - name: Create release commit
         env:
           version: "${{ steps.gather_facts.outputs.version }}"
