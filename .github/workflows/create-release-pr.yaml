@@ -48,7 +48,7 @@ jobs:
   create_release_pr:
     name: Create release PR
     runs-on: ubuntu-18.04
-    container: quay.io/giantswarm/architect:1.0.0-f532331f8f6b40ab6cec2bb9398c5d9b0162ccb0
+    container: quay.io/giantswarm/architect:1.0.0-1b5476b8a3e61552320a24e0fe7347ced650a1a8
     needs:
       - install_hub
     env:
