@@ -9,7 +9,9 @@ jobs:
     steps:
       - name: Print github context JSON
         run: |
-          echo "${{ toJson(github) }}"
+          cat <<EOF
+          ${{ toJson(github) }}
+          EOF
   gather_facts:
     name: Gather facts
     runs-on: ubuntu-18.04

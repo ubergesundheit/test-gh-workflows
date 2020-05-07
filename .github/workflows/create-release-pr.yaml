@@ -12,7 +12,9 @@ jobs:
     steps:
       - name: Print github context JSON
         run: |
-          echo "${{ toJson(github) }}"
+          cat <<EOF
+          ${{ toJson(github) }}
+          EOF
   install_hub:
     name: Install hub
     runs-on: ubuntu-18.04
@@ -71,8 +73,7 @@ jobs:
         env:
           version: "${{ steps.gather_facts.outputs.version }}"
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.name "github-actions"
           git commit --allow-empty -m "release v${{ env.version }}"
       - name: Push changes
         env:

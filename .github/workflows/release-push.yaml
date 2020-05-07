@@ -12,7 +12,9 @@ jobs:
     steps:
       - name: Print github context JSON
         run: |
-          echo "${{ toJson(github) }}"
+          cat <<EOF
+          ${{ toJson(github) }}
+          EOF
   gather_facts:
     name: Gather facts
     runs-on: ubuntu-18.04
@@ -155,8 +157,7 @@ jobs:
       - name: Create tag
         run: |
           version="${{ needs.gather_facts.outputs.version }}"
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.name "github-actions"
           git tag "v$version" ${{ github.sha }}
       - name: Push tag
         env:
