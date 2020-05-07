@@ -5,9 +5,6 @@ on:
       - 'master#release#v*.*.*'
       - 'legacy#release#v*.*.*'
       - 'release-v*.x.x#release#v*.*.*'
-defaults:
-  run:
-    working-directory: "/wd/${{ github.repository_owner }}/${{ github.event.repository.name }}"
 jobs:
   debug_info:
     name: Debug info
@@ -50,6 +47,9 @@ jobs:
           path: "${{ env.DIR }}/${{ env.BINARY }}"
   create_release_pr:
     name: Create release PR
+    defaults:
+      run:
+        working-directory: "/wd/${{ github.repository_owner }}/${{ github.event.repository.name }}"
     runs-on: ubuntu-18.04
     container: quay.io/giantswarm/architect:1.0.0-bb38705c4619a4b0099180c838f57958450649b0
     needs:
