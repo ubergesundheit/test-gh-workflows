@@ -15,7 +15,36 @@ jobs:
           cat <<EOF
           ${{ toJson(github) }}
           EOF
-  # TODO Install hub in architect image.
+  install_architect:
+    name: Install architect
+    runs-on: ubuntu-18.04
+    env:
+      BINARY: "architect"
+      DIR: "/opt/cache"
+      MODULE: "github.com/giantswarm/architect"
+      VERSION: "1b5476b8a3e61552320a24e0fe7347ced650a1a8"
+    steps:
+      - name: Cache
+        id: cache
+        uses: actions/cache@v1
+        with:
+          key: "install-${{ env.BINARY }}-${{ env.URL }}"
+          path: "${{ env.DIR }}"
+      - name: Get module
+        if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+        env:
+          GO111MODULE: "on"
+          GOBIN: "${{ env.DIR }}"
+        run: |
+          go get ${{ env.MODULE }}@${{ env.VERSION }}
+      - name: Smoke test
+        run: |
+          ${{ env.DIR }}/${{ env.BINARY }} version
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: "${{ env.BINARY }}"
+          path: "${{ env.DIR }}/${{ env.BINARY }}"
   install_hub:
     name: Install hub
     runs-on: ubuntu-18.04
@@ -48,8 +77,8 @@ jobs:
   create_release_pr:
     name: Create release PR
     runs-on: ubuntu-18.04
-    container: quay.io/giantswarm/architect:1.0.0-1b5476b8a3e61552320a24e0fe7347ced650a1a8
     needs:
+      - install_architect
       - install_hub
     env:
       architect_flags: "--organisation ${{ github.repository_owner }} --project ${{ github.event.repository.name }}"
@@ -62,6 +91,11 @@ jobs:
           version="${version#v}" # Strip "v" prefix.
           echo "::set-output name=base::${base}"
           echo "::set-output name=version::${version}"
+      - name: Download architect artifact to /opt/bin
+        uses: actions/download-artifact@v2
+        with:
+          name: architect
+          path: /opt/bin
       - name: Download hub artifact to /opt/bin
         uses: actions/download-artifact@v2
         with:
