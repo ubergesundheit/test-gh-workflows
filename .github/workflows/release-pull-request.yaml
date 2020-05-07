@@ -39,7 +39,7 @@ jobs:
     env:
       BINARY: "architect"
       MODULE: "github.com/giantswarm/architect"
-      VERSION: "1a330ad33b656bb38ab7ef81782dd3956f5dd508"
+      VERSION: "934a337dd642a6d77536e13f2ad0bd2dfe8868bf"
     steps:
       - name: Key
         id: key
@@ -101,9 +101,7 @@ jobs:
           git diff --exit-code "origin/${{ github.base_ref }}" HEAD
       - name: Update changelog
         run: |
-          version="${{ needs.gather_facts.outputs.version }}"
-          #architect release prepare . "$version"
-          echo "$version" > ./CHANGELOG.md
+          architect prepare-release "${{ needs.gather_facts.outputs.version }}"
       - name: Commit changes
         env:
           version: "${{ needs.gather_facts.outputs.version }}"
