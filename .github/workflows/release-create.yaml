@@ -2,9 +2,9 @@ name: Release create
 on:
   create:
     branches:
-      - 'master/release/v*.*.*'
-      - 'legacy/release/v*.*.*'
-      - 'release-v*.x.x/release/v*.*.*'
+      - 'master#release#v*.*.*'
+      - 'legacy#release#v*.*.*'
+      - 'release-v*.x.x#release#v*.*.*'
 jobs:
   debug_info:
     name: Debug info
