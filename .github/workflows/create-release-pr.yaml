@@ -83,6 +83,7 @@ jobs:
         env:
           version: "${{ steps.gather_facts.outputs.version }}"
         run: |
+          git config --local user.email "action@github.com"
           git config --local user.name "github-actions"
           git commit --allow-empty -m "release v${{ env.version }}"
       - name: Push changes
