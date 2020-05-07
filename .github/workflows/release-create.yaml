@@ -85,4 +85,4 @@ jobs:
           base: "${{ steps.gather_facts.outputs.base }}"
           version: "${{ steps.gather_facts.outputs.version }}"
         run: |
-          hub pull-request -a ${{ github.actor }} -b ${{ env.base }} -h ${{ github.event.ref }}
+          hub pull-request -f -a ${{ github.actor }} -b ${{ env.base }} -h ${{ github.event.ref }}
