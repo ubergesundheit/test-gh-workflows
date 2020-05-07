@@ -71,6 +71,9 @@ jobs:
         run: |
           chmod +x /opt/bin/*
           echo "::add-path::/opt/bin"
+      - name: Print architect version
+        run: |
+          architect version ${{ env.architect_flags }}
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Prepare release changes
