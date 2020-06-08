@@ -22,7 +22,7 @@ jobs:
       BINARY: "architect"
       DIR: "/opt/cache"
       MODULE: "github.com/giantswarm/architect"
-      VERSION: "1b5476b8a3e61552320a24e0fe7347ced650a1a8"
+      VERSION: "1bc9ea0e70a1e21408f8372394d2c3149e2da254"
     steps:
       - name: Cache
         id: cache
