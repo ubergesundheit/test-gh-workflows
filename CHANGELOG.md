@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [12.0.1] - 2020-06-08
+
 ## [12.0.0] 2020-05-22
 
 
@@ -16,4 +18,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-[Unreleased]: https://github.com/kopiczko/test-gh-workflows/tree/master
+[Unreleased]: https://github.com/kopiczko/test-gh-workflows/compare/v12.0.1...HEAD
+[12.0.1]: https://github.com/kopiczko/test-gh-workflows/releases/tag/v12.0.1
