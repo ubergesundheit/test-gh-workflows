@@ -21,8 +21,8 @@ jobs:
     env:
       BINARY: "architect"
       DIR: "/opt/cache"
-      MODULE: "github.com/giantswarm/architect"
-      VERSION: "1bc9ea0e70a1e21408f8372394d2c3149e2da254"
+      IMAGE: "quay.io/giantswarm/architect:1.2.0"
+      IMAGE_PATH: "/usr/bin/architect"
     steps:
       - name: Cache
         id: cache
@@ -30,13 +30,13 @@ jobs:
         with:
           key: "install-${{ env.BINARY }}-${{ env.URL }}"
           path: "${{ env.DIR }}"
-      - name: Get module
+      - name: Download
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
-        env:
-          GO111MODULE: "on"
-          GOBIN: "${{ env.DIR }}"
         run: |
-          go get ${{ env.MODULE }}@${{ env.VERSION }}
+          mkdir -p ${{ env.DIR }}
+          docker container create --name tmp ${{ env.IMAGE }}
+          docker cp tmp:${{ IMAGE_PATH }} ${{ env.DIR }}/${{ env.BINARY }}
+          docker container rm tmp
       - name: Smoke test
         run: |
           ${{ env.DIR }}/${{ env.BINARY }} version
