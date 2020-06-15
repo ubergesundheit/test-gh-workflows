@@ -1,3 +1,7 @@
+# DO NOT EDIT. Generated with:
+#
+#    devctl gen workflows
+#
 name: Create Release PR
 on:
   create:
