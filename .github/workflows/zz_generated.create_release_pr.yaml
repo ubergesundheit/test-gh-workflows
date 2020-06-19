@@ -23,7 +23,7 @@ jobs:
     name: Gather facts
     runs-on: ubuntu-18.04
     outputs:
-      diff_cnt: ${{ steps.get_diff_characters_count.outputs.diff_cnt }}
+      base_behind: ${{ steps.get_base_behind.outputs.base_behind }}
       base: ${{ steps.get_base.outputs.base }}
       version: ${{ steps.get_version.outputs.version }}
     steps:
@@ -40,16 +40,23 @@ jobs:
           version="${version#v}" # Strip "v" prefix.
           echo "version=\"$version\""
           echo "::set-output name=version::${version}"
-      - name: Checkout code
+      - name: Checkout base code
         uses: actions/checkout@v2
-      - name: Get diff characters count
-        id: get_diff_characters_count
+        witch:
+          ref: ${{ steps.get_base.outputs.base }}
+      - name: Get base behind
+        id: get_base_behind
         env:
-          base: ${{ steps.get_base.outputs.base }}
+          sha: ${{ github.sha }}
         run: |
-          diff_cnt=$(git diff ${{ env.base }} | wc -c)
-          echo "diff_cnt=\"$diff_cnt\""
-          echo "::set-output name=diff_cnt::${diff_cnt}"
+          base_head=$(git rev-parse HEAD)
+          echo "base_head=\"$base_head\""
+          base_behind="no"
+          if [[ "$base_head" == "${{ env.sha }}" ]] ; then
+            base_behind="yes"
+          fi
+          echo "base_behind=\"$base_behind\""
+          echo "::set-output name=base_behind::${base_behind}"
   install_architect:
     name: Install architect
     runs-on: ubuntu-18.04
@@ -112,7 +119,7 @@ jobs:
   create_release_pr:
     name: Create release PR
     runs-on: ubuntu-18.04
-    if: ${{ needs.gather_facts.outputs.diff_cnt == 0 }}
+    if: ${{ needs.gather_facts.outputs.base_behind == "no" }}
     needs:
       - gather_facts
       - install_architect
