@@ -52,7 +52,7 @@ jobs:
           base_head=$(git rev-parse HEAD)
           echo "base_head=\"$base_head\""
           unchanged="false"
-          if [[ "$unchanged" == "${{ env.sha }}" ]] ; then
+          if [[ "$base_head" == "${{ env.sha }}" ]] ; then
             unchanged="true"
           fi
           echo "unchanged=\"$unchanged\""
