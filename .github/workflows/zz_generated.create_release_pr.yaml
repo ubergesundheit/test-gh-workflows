@@ -63,8 +63,9 @@ jobs:
     env:
       BINARY: "architect"
       DIR: "/opt/cache"
-      IMAGE: "quay.io/giantswarm/architect:1.2.0"
+      IMAGE: "quay.io/giantswarm/architect"
       IMAGE_PATH: "/usr/bin/architect"
+      VERSION: "1.2.0"
     steps:
       - name: Cache
         id: cache
@@ -76,7 +77,7 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
         run: |
           mkdir -p ${{ env.DIR }}
-          docker container create --name tmp ${{ env.IMAGE }}
+          docker container create --name tmp ${{ env.IMAGE }}:${{ env.VERSION }}
           docker cp tmp:${{ env.IMAGE_PATH }} ${{ env.DIR }}/${{ env.BINARY }}
           docker container rm tmp
       - name: Smoke test
