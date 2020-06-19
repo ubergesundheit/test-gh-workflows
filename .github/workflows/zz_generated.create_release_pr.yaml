@@ -71,7 +71,7 @@ jobs:
         id: cache
         uses: actions/cache@v1
         with:
-          key: "install-${{ env.BINARY }}-${{ env.URL }}"
+          key: "install-${{ env.BINARY }}-${{ env.VERSION }}"
           path: "${{ env.DIR }}"
       - name: Download
         if: ${{ steps.cache.outputs.cache-hit != 'true' }}
