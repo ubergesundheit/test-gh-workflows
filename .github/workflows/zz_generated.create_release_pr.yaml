@@ -51,9 +51,9 @@ jobs:
         run: |
           base_head=$(git rev-parse HEAD)
           echo "base_head=\"$base_head\""
-          base_behind="no"
+          base_behind="false"
           if [[ "$base_head" == "${{ env.sha }}" ]] ; then
-            base_behind="yes"
+            base_behind="true"
           fi
           echo "base_behind=\"$base_behind\""
           echo "::set-output name=base_behind::${base_behind}"
@@ -120,7 +120,7 @@ jobs:
   create_release_pr:
     name: Create release PR
     runs-on: ubuntu-18.04
-    if: ${{ needs.gather_facts.outputs.base_behind == "no" }}
+    if: ${{ needs.gather_facts.outputs.base_behind == 'false' }}
     needs:
       - gather_facts
       - install_architect
