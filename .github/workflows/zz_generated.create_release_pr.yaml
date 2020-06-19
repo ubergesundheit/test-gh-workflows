@@ -4,7 +4,7 @@
 #
 name: Create Release PR
 on:
-  create:
+  push:
     branches:
       - 'master#release#v*.*.*'
       - 'legacy#release#v*.*.*'
@@ -19,6 +19,37 @@ jobs:
           cat <<EOF
           ${{ toJson(github) }}
           EOF
+  gather_facts:
+    name: Gather facts
+    runs-on: ubuntu-18.04
+    outputs:
+      diff_cnt: ${{ steps.get_diff_characters_count.outputs.diff_cnt }}
+      base: ${{ steps.get_base.outputs.base }}
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Get base
+        id: get_base
+        run: |
+          base="$(echo ${{ github.event.ref }} | cut -d '#' -f 1)"
+          echo "base=\"$base\""
+          echo "::set-output name=base::${base}"
+      - name: Get version
+        id: get_version
+        run: |
+          version="$(echo ${{ github.event.ref }} | cut -d '#' -f 3)"
+          version="${version#v}" # Strip "v" prefix.
+          echo "version=\"$version\""
+          echo "::set-output name=version::${version}"
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get diff characters count
+        id: get_diff_characters_count
+        env:
+          base: ${{ steps.get_base.outputs.base }}
+        run: |
+          diff_cnt=$(git diff ${{ env.base }} | wc -c)
+          echo "diff_cnt=\"$diff_cnt\""
+          echo "::set-output name=diff_cnt::${diff_cnt}"
   install_architect:
     name: Install architect
     runs-on: ubuntu-18.04
@@ -81,20 +112,14 @@ jobs:
   create_release_pr:
     name: Create release PR
     runs-on: ubuntu-18.04
+    if: ${{ needs.gather_facts.outputs.diff_cnt == 0 }}
     needs:
+      - gather_facts
       - install_architect
       - install_hub
     env:
       architect_flags: "--organisation ${{ github.repository_owner }} --project ${{ github.event.repository.name }}"
     steps:
-      - name: Gather facts
-        id: gather_facts
-        run: |
-          base="$(echo ${{ github.event.ref }} | cut -d '#' -f 1)"
-          version="$(echo ${{ github.event.ref }} | cut -d '#' -f 3)"
-          version="${version#v}" # Strip "v" prefix.
-          echo "::set-output name=base::${base}"
-          echo "::set-output name=version::${version}"
       - name: Download architect artifact to /opt/bin
         uses: actions/download-artifact@v2
         with:
@@ -116,10 +141,10 @@ jobs:
         uses: actions/checkout@v2
       - name: Prepare release changes
         run: |
-          architect prepare-release ${{ env.architect_flags }} --version "${{ steps.gather_facts.outputs.version }}"
+          architect prepare-release ${{ env.architect_flags }} --version "${{ needs.gather_facts.outputs.version }}"
       - name: Create release commit
         env:
-          version: "${{ steps.gather_facts.outputs.version }}"
+          version: "${{ needs.gather_facts.outputs.version }}"
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "github-actions"
@@ -133,7 +158,7 @@ jobs:
       - name: Create PR
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          base: "${{ steps.gather_facts.outputs.base }}"
-          version: "${{ steps.gather_facts.outputs.version }}"
+          base: "${{ needs.gather_facts.outputs.base }}"
+          version: "${{ needs.gather_facts.outputs.version }}"
         run: |
           hub pull-request -f  -m "release v${{ env.version }}" -a ${{ github.actor }} -b ${{ env.base }} -h ${{ github.event.ref }}
