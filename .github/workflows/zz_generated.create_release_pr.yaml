@@ -42,7 +42,7 @@ jobs:
           echo "::set-output name=version::${version}"
       - name: Checkout base code
         uses: actions/checkout@v2
-        witch:
+        with:
           ref: ${{ steps.get_base.outputs.base }}
       - name: Get base behind
         id: get_base_behind
