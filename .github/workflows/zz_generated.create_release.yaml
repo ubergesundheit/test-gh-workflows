@@ -182,20 +182,29 @@ jobs:
           release_name: "v${{ needs.gather_facts.outputs.version }}"
 
   create-release-branch:
+    name: Create release branch
     runs-on: ubuntu-18.04
     needs:
       - gather_facts
+      - install_semver
     if: ${{ needs.gather_facts.outputs.version }}
     steps:
+      - name: Download semver artifact to /opt/bin
+        uses: actions/download-artifact@v2
+        with:
+          name: semver
+          path: /opt/bin
+      - name: Prepare /opt/bin
+        run: |
+          chmod +x /opt/bin/*
+          echo "::add-path::/opt/bin"
       - uses: actions/checkout@v2
         name: Check out the repository
         with:
           fetch-depth: 0  # Clone the whole history, not just the most recent commit.
-
       - name: Fetch all tags and branches
         run: "git fetch --all"
-
-      - name: 
+      - name: Create long-lived release branch
         run: |
           current_version="${{ needs.gather_facts.outputs.version }}"
           parent_version="$(git describe --tags --abbrev=0 HEAD^)"
