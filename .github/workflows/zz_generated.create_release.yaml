@@ -221,7 +221,7 @@ jobs:
             echo "Current tag is a new major version"
           elif [[ $current_major -eq $parent_major ]] && [[ $current_minor -gt $parent_minor ]] ; then
             echo "Current tag is a new minor version"
-          else 
+          else
             echo "Current tag is not a new major or minor version. Nothing to do here."
             exit 0
           fi
