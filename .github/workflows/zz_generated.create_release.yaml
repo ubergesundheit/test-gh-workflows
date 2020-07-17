@@ -155,7 +155,7 @@ jobs:
           version: "${{ needs.gather_facts.outputs.version }}"
           title: "Bump version to ${{ steps.update_project_go.outputs.new_version }}"
         run: |
-          hub pull-request -f  -m "${{ env.title }}" -a ${{ github.actor }} -b ${{ env.base }} -h ${{ env.branch }}
+          hub pull-request -f  -m "${{ env.title }}" -b ${{ env.base }} -h ${{ env.branch }} -r ${{ github.actor }}
   create_release:
     name: Create release
     runs-on: ubuntu-18.04
