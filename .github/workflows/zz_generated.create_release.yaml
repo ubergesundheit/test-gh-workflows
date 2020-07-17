@@ -150,7 +150,7 @@ jobs:
       - name: Create PR
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          base: "${{ needs.gather_facts.outputs.base }}"
+          base: "${{ github.ref }}"
           branch: "${{ github.ref }}-version-bump"
           version: "${{ needs.gather_facts.outputs.version }}"
           title: "Bump version to ${{ steps.update_project_go.outputs.new_version }}"
