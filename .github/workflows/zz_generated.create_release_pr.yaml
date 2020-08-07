@@ -25,51 +25,38 @@ jobs:
     name: Gather facts
     runs-on: ubuntu-18.04
     outputs:
-      base: ${{ steps.get_info.outputs.base }}
-      version: ${{ steps.get_info.outputs.version }}
+      base: ${{ steps.gather_facts.outputs.base }}
+      version: ${{ steps.gather_facts.outputs.version }}
     steps:
-      - name: Get base, head & version
-        id: get_info
+      - name: Gather facts
+        id: gather_facts
         run: |
-          echo "::group::Get info"
+          echo "::group::Get facts"
           head="${{ github.event.ref }}"
           head="${head#refs/heads/}" # Strip "refs/heads/" prefix.
           base="$(echo $head | cut -d '#' -f 1)"
           base="${base#refs/heads/}" # Strip "refs/heads/" prefix.
           version="$(echo $head | cut -d '#' -f 3)"
           version="${version#v}" # Strip "v" prefix.
-          echo "::endgroup::"
-          echo "::group::Validate"
-          git init
-          git remote add origin ${{ github.event.repository.clone_url }}
-          git fetch -q --depth=1 origin $base
-          git fetch -q --depth=1 origin $head
-          git rev-list --left-right --count origin/$base...origin/$head
-          echo "::endgroup::"
-          echo "::group::Set outputs"
           echo "base=\"$base\" head=\"$head\" version=\"$version\""
           echo "::set-output name=base::${base}"
           echo "::set-output name=head::${head}"
           echo "::set-output name=version::${version}"
           echo "::endgroup::"
-      - name: Checkout head
-        uses: actions/checkout@v2
-      - name: Checkout base
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ steps.get_info.outputs.base }}
-      - name: Check if not behind base
-        env:
-          base: ${{ steps.get_info.outputs.base }}
-          head: ${{ steps.get_info.outputs.head }}
-        run: |
-          git rev-list --left-right --count origin/$base...origin/$head
-          base_sha=$(git rev-parse HEAD)
-          echo "base_sha=\"$base_sha\""
-          if [[ "$base_sha" == "${{ github.sha }}" ]] ; then
-            echo "::error:: Head branch ${{ env.head }} HEAD ($base_head) is behind base branch ${{ env.base }} HEAD (${{ github.sha }}). Please recreate the ${{ env.bas }} branch."
+          echo "::group::Validate"
+          git init -q
+          git remote add origin ${{ github.event.repository.clone_url }}
+          git fetch -q --depth=1 origin $base
+          git fetch -q --depth=1 origin $head
+          out=$(git rev-list --left-right --count origin/$base...origin/$head)
+          ahead=$(echo $out | awk '{print $2}')
+          behind=$(echo $out | awk '{print $1}')
+          echo "ahead=\"$ahead\" behind=\"$behind\""
+          if [[ $ahead -ne 0 ]] || [[ $behind -ne 0 ]] ; then
+            echo "::error:: Branch $head is $ahead commits ahead and $behind commits behind $base branch.\nPlease recreate the $head branch."
             exit 1
           fi
+          echo "::endgroup::"
   install_architect:
     name: Install architect
     runs-on: ubuntu-18.04
