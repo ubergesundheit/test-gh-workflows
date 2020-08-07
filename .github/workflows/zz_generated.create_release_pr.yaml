@@ -53,7 +53,7 @@ jobs:
           behind=$(echo $out | awk '{print $1}')
           echo "ahead=\"$ahead\" behind=\"$behind\""
           if [[ $ahead -ne 0 ]] || [[ $behind -ne 0 ]] ; then
-            echo "::error:: Branch $head is $ahead commits ahead and $behind commits behind $base branch.\nPlease recreate the $head branch."
+            echo "::error:: Branch $head is $ahead commits ahead and $behind commits behind $base branch. Please recreate the $head branch."
             exit 1
           fi
           echo "::endgroup::"
