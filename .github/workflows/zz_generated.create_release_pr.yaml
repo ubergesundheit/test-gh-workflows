@@ -28,8 +28,6 @@ jobs:
       base: ${{ steps.get_info.outputs.base }}
       version: ${{ steps.get_info.outputs.version }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
       - name: Get base, head & version
         id: get_info
         run: |
@@ -42,7 +40,10 @@ jobs:
           version="${version#v}" # Strip "v" prefix.
           echo "::endgroup::"
           echo "::group::Validate"
-          git rev-list --left-right --count origin/$base...origin/$head
+          git init
+          git remote add origin ${{ github.event.repository.clone_url }}
+          git fetch --depth=1 origin $base
+          git fetch --depth=1 origin $head
           echo "::endgroup::"
           echo "::group::Set outputs"
           echo "base=\"$base\" head=\"$head\" version=\"$version\""
@@ -50,7 +51,9 @@ jobs:
           echo "::set-output name=head::${head}"
           echo "::set-output name=version::${version}"
           echo "::endgroup::"
-      - name: Checkout base code
+      - name: Checkout head
+        uses: actions/checkout@v2
+      - name: Checkout base
         uses: actions/checkout@v2
         with:
           ref: ${{ steps.get_info.outputs.base }}
@@ -59,6 +62,7 @@ jobs:
           base: ${{ steps.get_info.outputs.base }}
           head: ${{ steps.get_info.outputs.head }}
         run: |
+          git rev-list --left-right --count origin/$base...origin/$head
           base_sha=$(git rev-parse HEAD)
           echo "base_sha=\"$base_sha\""
           if [[ "$base_sha" == "${{ github.sha }}" ]] ; then
