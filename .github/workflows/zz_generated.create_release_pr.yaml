@@ -42,8 +42,9 @@ jobs:
           echo "::group::Validate"
           git init
           git remote add origin ${{ github.event.repository.clone_url }}
-          git fetch --depth=1 origin $base
-          git fetch --depth=1 origin $head
+          git fetch -q --depth=1 origin $base
+          git fetch -q --depth=1 origin $head
+          git rev-list --left-right --count origin/$base...origin/$head
           echo "::endgroup::"
           echo "::group::Set outputs"
           echo "base=\"$base\" head=\"$head\" version=\"$version\""
