@@ -65,7 +65,7 @@ jobs:
       DIR: "/opt/cache"
       IMAGE: "quay.io/giantswarm/architect"
       IMAGE_PATH: "/usr/bin/architect"
-      VERSION: "1.2.0"
+      VERSION: "2.1.4"
     outputs:
       cache_key: "${{ steps.get_cache_key.outputs.cache_key }}"
     steps:
@@ -91,7 +91,7 @@ jobs:
         run: |
           ${{ env.DIR }}/${{ env.BINARY }} version
       - name: Upload artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.1.4
         with:
           name: "${{ env.BINARY }}"
           path: "${{ env.DIR }}/${{ env.BINARY }}"
