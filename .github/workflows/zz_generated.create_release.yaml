@@ -170,8 +170,8 @@ jobs:
     steps:
       - name: Install tools
         uses: giantswarm/install-tools-action@v0.1.0
-      - uses: actions/checkout@v2
-        name: Check out the repository
+      - name: Check out the repository
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Clone the whole history, not just the most recent commit.
       - name: Fetch all tags and branches
