@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [14.1.9] - 2020-10-20
+
 ## [14.1.8] - 2020-10-20
 
 ## [14.1.7] - 2020-10-15
@@ -51,7 +53,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-[Unreleased]: https://github.com/kopiczko/test-gh-workflows/compare/v14.1.8...HEAD
+[Unreleased]: https://github.com/kopiczko/test-gh-workflows/compare/v14.1.9...HEAD
+[14.1.9]: https://github.com/kopiczko/test-gh-workflows/compare/v14.1.8...v14.1.9
 [14.1.8]: https://github.com/kopiczko/test-gh-workflows/compare/v14.1.7...v14.1.8
 [14.1.7]: https://github.com/kopiczko/test-gh-workflows/compare/v14.1.5...v14.1.7
 [14.1.5]: https://github.com/kopiczko/test-gh-workflows/compare/v14.1.3...v14.1.5
