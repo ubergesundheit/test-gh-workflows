@@ -187,7 +187,7 @@ jobs:
         run: "git fetch --all"
       - name: Create long-lived release branch
         run: |
-	  git checkout ${{ needs.gather_facts.outputs.version }}
+          git checkout ${{ needs.gather_facts.outputs.version }}
 
           parent_version="$(git describe --tags --abbrev=0 HEAD^)"
           parent_version="${parent_version#v}" # Strip "v" prefix.
