@@ -199,7 +199,23 @@ jobs:
             exit 0
           fi
 
+          current_rev=$(git rev-parse HEAD)
+          has_makefile=$([ -f Makefile ] && echo "yes" || echo "no")
+
           git branch ${release_branch} v${parent_version}
+          git checkout ${release_branch}
+
+          git checkout $current_rev -- .github/workflows
+          if [[ $has_makefile == "yes" ]] ; then
+            git checkout $current_rev -- Makefile
+          fi
+
+          git add -A
+
+          if ! git diff --cached --exit-code > /dev/null ; then
+            git commit -m "Update workflows"
+          fi
+
           git push origin ${release_branch}
 
   create_and_upload_build_artifacts:
