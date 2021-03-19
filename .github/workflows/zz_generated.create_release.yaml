@@ -1,12 +1,13 @@
 # DO NOT EDIT. Generated with:
 #
-#    devctl gen workflows
+#    devctl@4.3.1-dev
 #
 name: Create Release
 on:
   push:
     branches:
       - 'legacy'
+      - 'main'
       - 'master'
       - 'release-v*.*.x'
       # "!" negates previous positive patterns so it has to be at the end.
@@ -86,7 +87,7 @@ jobs:
         uses: giantswarm/install-binary-action@v1.0.0
         with:
           binary: "architect"
-          version: "3.0.5"
+          version: "3.4.0"
       - name: Install semver
         uses: giantswarm/install-binary-action@v1.0.0
         with:
@@ -179,6 +180,14 @@ jobs:
       - gather_facts
     if: ${{ needs.gather_facts.outputs.version }}
     steps:
+      - name: Install semver
+        uses: giantswarm/install-binary-action@v1.0.0
+        with:
+          binary: "semver"
+          version: "3.0.0"
+          download_url: "https://github.com/fsaintjacques/${binary}-tool/archive/${version}.tar.gz"
+          tarball_binary_path: "*/src/${binary}"
+          smoke_test: "${binary} --version"
       - name: Check out the repository
         uses: actions/checkout@v2
         with:
@@ -187,38 +196,42 @@ jobs:
         run: "git fetch --all"
       - name: Create long-lived release branch
         run: |
-          parent_version="$(git describe --tags --abbrev=0 HEAD^)"
+          current_version="${{ needs.gather_facts.outputs.version }}"
+          parent_version="$(git describe --tags --abbrev=0 HEAD^ || true)"
           parent_version="${parent_version#v}" # Strip "v" prefix.
-          echo "parent_version=$parent_version"
 
-          release_branch="release-v$(echo ${parent_version} | cut -d '.' -f 1,2).x"
-          echo "release_branch=${release_branch}"
-
-          if git rev-parse --verify ${release_branch} ; then
-            echo "Release branch ${release_branch} already exists. Nothing to do here."
+          if [[ -z "$parent_version" ]] ; then
+            echo "Unable to find a parent tag version. No branch to create."
             exit 0
           fi
 
-          current_rev=$(git rev-parse HEAD)
-          has_makefile=$([ -f Makefile ] && echo "yes" || echo "no")
+          echo "current_version=$current_version parent_version=$parent_version"
 
-          git branch ${release_branch} v${parent_version}
-          git checkout ${release_branch}
+          current_major=$(semver get major $current_version)
+          current_minor=$(semver get minor $current_version)
+          parent_major=$(semver get major $parent_version)
+          parent_minor=$(semver get minor $parent_version)
+          echo "current_major=$current_major current_minor=$current_minor parent_major=$parent_major parent_minor=$parent_minor"
 
-          git checkout $current_rev -- .github/workflows
-          if [[ $has_makefile == "yes" ]] ; then
-            git checkout $current_rev -- Makefile
+          if [[ $current_major -gt $parent_major ]] ; then
+            echo "Current tag is a new major version"
+          elif [[ $current_major -eq $parent_major ]] && [[ $current_minor -gt $parent_minor ]] ; then
+            echo "Current tag is a new minor version"
+          else
+            echo "Current tag is not a new major or minor version. Nothing to do here."
+            exit 0
           fi
 
-          git add -A
+          release_branch="release-v${parent_major}.${parent_minor}.x"
+          echo "release_branch=$release_branch"
 
-          if ! git diff --cached --exit-code > /dev/null ; then
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action"
-            git commit -m "Update workflows"
+          if git rev-parse --verify $release_branch ; then
+            echo "Release branch $release_branch already exists. Nothing to do here."
+            exit 0
           fi
 
-          git push origin ${release_branch}
+          git branch $release_branch HEAD^
+          git push origin $release_branch
 
   create_and_upload_build_artifacts:
     name: Create and upload build artifacts
@@ -228,9 +241,11 @@ jobs:
         platform:
           - darwin
           - linux
+          - darwin-arm64
+          - linux-arm64
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      GO_VERSION: 1.14.2
+      GO_VERSION: 1.16.2
       ARTIFACT_DIR: bin-dist
       TAG: v${{ needs.gather_facts.outputs.version }}
     needs:
@@ -241,7 +256,7 @@ jobs:
         uses: giantswarm/install-binary-action@v1.0.0
         with:
           binary: "architect"
-          version: "3.0.5"
+          version: "3.4.0"
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v2.1.3
         with:
