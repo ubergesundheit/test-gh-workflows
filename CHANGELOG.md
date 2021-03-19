@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [15.0.2] - 2021-03-19
+
 ## [15.0.1] - 2021-03-19
 
 ## [15.0.0] - 2021-03-19
@@ -69,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
-[Unreleased]: https://github.com/ubergesundheit/test-gh-workflows/compare/v15.0.1...HEAD
+[Unreleased]: https://github.com/ubergesundheit/test-gh-workflows/compare/v15.0.2...HEAD
+[15.0.2]: https://github.com/ubergesundheit/test-gh-workflows/compare/v15.0.1...v15.0.2
 [15.0.1]: https://github.com/ubergesundheit/test-gh-workflows/compare/v15.0.0...v15.0.1
 [15.0.0]: https://github.com/ubergesundheit/test-gh-workflows/compare/v14.6.0...v15.0.0
 [14.6.0]: https://github.com/kopiczko/test-gh-workflows/compare/v14.5.0...v14.6.0
