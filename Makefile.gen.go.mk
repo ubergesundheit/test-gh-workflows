@@ -1,6 +1,6 @@
 # DO NOT EDIT. Generated with:
 #
-#    devctl@4.3.1-dev
+#    devctl@4.4.1-dev
 #
 
 PACKAGE_DIR    := ./bin-dist
@@ -21,21 +21,24 @@ LDFLAGS        ?= -w -linkmode 'auto' -extldflags '$(EXTLDFLAGS)' \
 
 .DEFAULT_GOAL := build
 
-.PHONY: build build-darwin build-darwin-64 build-linux build-linux-arm64
+.PHONY: build build-darwin-amd64 build-darwin-arm64 build-linux-amd64 build-linux-arm64 build-windows-amd64
 ## build: builds a local binary
 build: $(APPLICATION)
 	@echo "====> $@"
-## build-darwin: builds a local binary for darwin/amd64
-build-darwin: $(APPLICATION)-darwin
+## build-darwin-amd64: builds a local binary for darwin/amd64
+build-darwin-amd64: $(APPLICATION)-darwin
 	@echo "====> $@"
 ## build-darwin-arm64: builds a local binary for darwin/arm64
 build-darwin-arm64: $(APPLICATION)-darwin-arm64
 	@echo "====> $@"
-## build-linux: builds a local binary for linux/amd64
-build-linux: $(APPLICATION)-linux
+## build-linux-amd64: builds a local binary for linux/amd64
+build-linux-amd64: $(APPLICATION)-linux
 	@echo "====> $@"
 ## build-linux-arm64: builds a local binary for linux/arm64
 build-linux-arm64: $(APPLICATION)-linux-arm64
+	@echo "====> $@"
+## build-windows-amd64: builds a local binary for windows/amd64
+build-windows-amd64: $(APPLICATION)-windows
 	@echo "====> $@"
 
 $(APPLICATION): $(APPLICATION)-v$(VERSION)-$(OS)-amd64
@@ -55,6 +58,10 @@ $(APPLICATION)-linux: $(APPLICATION)-v$(VERSION)-linux-amd64
 	cp -a $< $@
 
 $(APPLICATION)-linux-arm64: $(APPLICATION)-v$(VERSION)-linux-arm64
+	@echo "====> $@"
+	cp -a $< $@
+
+$(APPLICATION)-windows: $(APPLICATION)-v$(VERSION)-windows-amd64
 	@echo "====> $@"
 	cp -a $< $@
 
@@ -78,6 +85,9 @@ package-linux-amd64: $(PACKAGE_DIR)/$(APPLICATION)-v$(VERSION)-linux-amd64.tar.g
 	@echo "====> $@"
 ## package-linux-arm64: prepares a packaged linux/arm64 version
 package-linux-arm64: $(PACKAGE_DIR)/$(APPLICATION)-v$(VERSION)-linux-arm64.tar.gz
+	@echo "====> $@"
+## package-windows-amd64: prepares a packaged windows/amd64 version
+package-windows-amd64: $(PACKAGE_DIR)/$(APPLICATION)-v$(VERSION)-windows-amd64.tar.gz
 	@echo "====> $@"
 
 $(PACKAGE_DIR)/$(APPLICATION)-v$(VERSION)-%-amd64.tar.gz: DIR=$(PACKAGE_DIR)/$<
