@@ -142,7 +142,9 @@ jobs:
           architect prepare-release ${{ env.architect_flags }} --version "${{ needs.gather_facts.outputs.version }}"
       - name: Update version field in Chart.yaml
         run: |
-          chart="helm/${{ needs.gather_facts.outputs.repo_name }}"
+          # Define chart_dir
+          repository="${{ needs.gather_facts.outputs.repo_name }}"
+          chart="helm/${repository}"
 
           # Check chart directory.
           if [ ! -d "${chart}" ]
