@@ -142,7 +142,7 @@ jobs:
           architect prepare-release ${{ env.architect_flags }} --version "${{ needs.gather_facts.outputs.version }}"
       - name: Update version field in Chart.yaml
         run: |
-          # Define helm and chart directory.
+          # Define chart directory.
           chart="helm/${{ needs.gather_facts.outputs.repo_name }}"
 
           # Check chart directory.
@@ -151,7 +151,7 @@ jobs:
             echo "Could not find chart directory '${chart}', adding app suffix."
 
             # Add app suffix.
-            chart="${helm}/${repository}-app"
+            chart="helm/${repository}-app"
 
             # Check chart directory with app suffix.
             if [ ! -d "${chart}" ]
@@ -159,7 +159,7 @@ jobs:
               echo "Could not find chart directory '${chart}', removing app suffix."
 
               # Remove app suffix.
-              chart="${helm}/${repository%-app}"
+              chart="helm/${repository%-app}"
 
               if [ ! -d "${chart}" ]
               then
